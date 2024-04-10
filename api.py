@@ -36,8 +36,8 @@ class products(BaseModel):
 
 
 class category_item(BaseModel):
-    categoryid: str
-    title: str
+    id: Optional[int] = None
+    title: Optional[str] = None
 
 
 class categories(BaseModel):
@@ -67,6 +67,23 @@ def read_item():
 
     return {"count": len(results), "results": product_items}
 
+
+@app.get("/categories/", response_model=categories)
+def read_item():
+    results = conn.get_category()
+    category_items = []
+    if len(results) == 0:
+        return {
+            "count": 0,
+            "results": [{"id": None, "title": None}],
+        }
+
+    for i in results:
+        category_items.append(
+            category_item(id=i[0], title=i[1])
+        )
+
+    return {"count": len(results), "results": category_items}
 
 # Route to create an item
 # @app.post("items/", response_model=Item)

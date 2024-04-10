@@ -43,6 +43,18 @@ class workwithbd(connection):
         # print(rows)
         return rows
 
+    def get_category(self):
+        self.connect()
+
+        query = "SELECT CategoryID, NameCat FROM category;"
+        self.cursor.execute(query)
+
+        rows = self.cursor.fetchall()
+        self.cursor.close()
+
+        # print(rows)
+        return rows
+    
     def savegood(self, row):
         # self.connect()
         if row[0] != "":
