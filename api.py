@@ -13,7 +13,6 @@ class product_item(BaseModel):
     title: str
     category: str
     price: int
-    images: str
 
 
 class products(BaseModel):
@@ -36,12 +35,12 @@ class Item(BaseModel):
     description: str = None
 
 
-@app.get("items/", response_model=products)
+@app.get("/items/", response_model=product_item)
 def read_item():
     results = conn.get_goods()
     if len(results) == 0:
         raise HTTPException(status_code=404, detail="Item not found")
-    return {len(results), results}
+    return {"goodid": str(results[0][0]), "title": results[0][1], "category": results[0][2],"price": results[0][3]}
 
 
 # Route to create an item

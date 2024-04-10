@@ -23,7 +23,7 @@ class connection:
 
             if self.connection.is_connected():
                 print(f"Успешно подключено к базе данных: {self.database}")
-                # self.cursor = self.connection.cursor()
+                self.cursor = self.connection.cursor()
                 return self.cursor
 
         except mysql.connector.Error as err:
