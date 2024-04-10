@@ -44,9 +44,13 @@ class workwithbd(connection):
         return rows
 
     def post_goods(self, product):
-        self.connect() 
-        query = "INSERT INTO products (title, category, price) VALUES (?, ?, ?)"
-        self.cursor.execute(query, (product.title, product.category, product.price))
+        # print(product.title)
+        # print(product.title, product.category, product.price)
+        self.cursor = self.connect()
+        query = "INSERT INTO good (NameGood, СategoryID, Price) VALUES (%s, %s, %s)"
+        self.cursor.execute(
+            query, (str(product.title), int(product.category), int(product.price))
+        )
         self.connection.commit()
         self.cursor.close()
 
@@ -63,7 +67,7 @@ class workwithbd(connection):
 
         # print(rows)
         return rows
-    
+
     def savegood(self, row):
         # self.connect()
         if row[0] != "":

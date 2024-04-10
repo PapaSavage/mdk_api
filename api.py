@@ -73,6 +73,7 @@ def create_item(product: product_item):
     conn.post_goods(product)
     return product
 
+
 @app.get("/categories/", response_model=categories)
 def read_item():
     results = conn.get_category()
@@ -84,11 +85,10 @@ def read_item():
         }
 
     for i in results:
-        category_items.append(
-            category_item(id=i[0], title=i[1])
-        )
+        category_items.append(category_item(id=i[0], title=i[1]))
 
     return {"count": len(results), "results": category_items}
+
 
 # Route to create an item
 # @app.post("items/", response_model=Item)
