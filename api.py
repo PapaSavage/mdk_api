@@ -68,6 +68,11 @@ def read_item():
     return {"count": len(results), "results": product_items}
 
 
+@app.post("/products/", response_model=product_item)
+def create_item(product: product_item):
+    conn.post_goods(product)
+    return product
+
 @app.get("/categories/", response_model=categories)
 def read_item():
     results = conn.get_category()

@@ -43,6 +43,15 @@ class workwithbd(connection):
         # print(rows)
         return rows
 
+    def post_goods(self, product):
+        self.connect() 
+        query = "INSERT INTO products (title, category, price) VALUES (?, ?, ?)"
+        self.cursor.execute(query, (product.title, product.category, product.price))
+        self.connection.commit()
+        self.cursor.close()
+
+        return True
+
     def get_category(self):
         self.connect()
 
