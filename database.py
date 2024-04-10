@@ -1,5 +1,6 @@
 import mysql.connector
 
+
 class connection:
     def __init__(self, host, user, password, database):
         self.host = host
@@ -9,18 +10,20 @@ class connection:
         self.connection = None
         self.cursor = None
 
+        self.connect()
+
     def connect(self):
         try:
             self.connection = mysql.connector.connect(
                 host=self.host,
                 user=self.user,
                 password=self.password,
-                database=self.database
+                database=self.database,
             )
 
             if self.connection.is_connected():
                 print(f"Успешно подключено к базе данных: {self.database}")
-                self.cursor = self.connection.cursor()
+                # self.cursor = self.connection.cursor()
                 return self.cursor
 
         except mysql.connector.Error as err:
@@ -29,13 +32,11 @@ class connection:
 
 class workwithbd(connection):
     def auth(self, login, password):
-        # self.connect()  
 
         query = "SELECT * FROM user WHERE Login = %s  AND Password = %s"
-        self.cursor.execute(query,(login, password))
+        self.cursor.execute(query, (login, password))
 
         rows = self.cursor.fetchall()
-        
 
         if len(rows) > 0:
             print("Авторизация успешна.")
@@ -47,170 +48,181 @@ class workwithbd(connection):
             return 2
 
     def register(self, login, password):
-            # self.connect()  
+        # self.connect()
 
-            query = "SELECT * FROM user WHERE Login = %s "
-            self.cursor.execute(query, (login,))
+        query = "SELECT * FROM user WHERE Login = %s "
+        self.cursor.execute(query, (login,))
 
-            rows = self.cursor.fetchall()
+        rows = self.cursor.fetchall()
 
+        if len(rows) == 0:
+            query1 = f"""INSERT INTO user (UserID, Surname, Name, Lastname, Phonenumber, Email, Login, Password, ISAdmin) VALUES (null, null, null, null, null, null, '{login}', '{password}', '0');"""
+            self.cursor.execute(query1)
+            self.connection.commit()
 
-            if len(rows) == 0:
-                query1 = f"""INSERT INTO user (UserID, Surname, Name, Lastname, Phonenumber, Email, Login, Password, ISAdmin) VALUES (null, null, null, null, null, null, '{login}', '{password}', '0');"""
-                self.cursor.execute(query1)
-                self.connection.commit()
+            return True
+        else:
+            print("Найдено совпадение пользователя.")
+            return False
 
-
-                return True
-            else:
-                print("Найдено совпадение пользователя.")
-                return False
-            
     def userID(self, login, password):
         query = "SELECT userID FROM user WHERE Login = %s AND Password = %s"
-        self.cursor.execute(query, (login,password))
+        self.cursor.execute(query, (login, password))
 
         rows = self.cursor.fetchall()
         return rows[0][0]
-                  
+
     def settings(self, login, password):
-            # self.connect()  
+        # self.connect()
 
-            query = "SELECT * FROM user WHERE Login = %s AND Password = %s"
-            self.cursor.execute(query, (login,password))
+        query = "SELECT * FROM user WHERE Login = %s AND Password = %s"
+        self.cursor.execute(query, (login, password))
 
-            rows = self.cursor.fetchall()
-            row = rows[-1]
-            print(row)
-            return row
-            
+        rows = self.cursor.fetchall()
+        row = rows[-1]
+        print(row)
+        return row
+
     def savechanges(self, login, password, row):
-            #  self.connect()  
+        #  self.connect()
 
-            query = """
+        query = """
             SELECT login 
             from user 
             WHERE Login = %s 
             """
-            self.cursor.execute(query, (row[5],))
-            rows = self.cursor.fetchall()
-            print(rows[0][0], login)
-            if rows == 0 or rows[0][0] == login:
-                query = """
+        self.cursor.execute(query, (row[5],))
+        rows = self.cursor.fetchall()
+        print(rows[0][0], login)
+        if rows == 0 or rows[0][0] == login:
+            query = """
                 UPDATE user 
                 SET Surname = %s, Name = %s, Lastname = %s, Phonenumber = %s, Email = %s, Login = %s, Password = %s 
                 WHERE Login = %s AND Password = %s
                 """
-                
-                values = (row[0], row[1], row[2], row[3], row[4], row[5], row[6], login, password)
 
-                self.cursor.execute(query, values)
-                self.connection.commit()
-                return True
-            else:
-                return False
-    
+            values = (
+                row[0],
+                row[1],
+                row[2],
+                row[3],
+                row[4],
+                row[5],
+                row[6],
+                login,
+                password,
+            )
+
+            self.cursor.execute(query, values)
+            self.connection.commit()
+            return True
+        else:
+            return False
+
     def admin(self):
-            #  self.connect()  
+        #  self.connect()
 
-            query = "SELECT good.GoodID, good.NameGood, category.NameCat, good.Price, good.Image, good.Description, good.good FROM good LEFT JOIN category ON good.СategoryID = category.CategoryID; "
-            self.cursor.execute(query)
+        query = "SELECT good.GoodID, good.NameGood, category.NameCat, good.Price, good.Image, good.Description, good.good FROM good LEFT JOIN category ON good.СategoryID = category.CategoryID; "
+        self.cursor.execute(query)
 
-            rows = self.cursor.fetchall()
-            return rows
-    
+        rows = self.cursor.fetchall()
+        return rows
+
     def savegood(self, row):
-            # self.connect()  
-            if row[0] != '':
-                query = "SELECT * FROM good WHERE GoodID = %s"
-                self.cursor.execute(query, (row[0],))
-                rows = self.cursor.fetchall()
-            else:
-                 rows = []
-
-            
-            if len(rows) == 0:
-                query1 = "INSERT INTO good (GoodID, NameGood, СategoryID, Price, Image, Description, good) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-                self.cursor.execute(query1, (row[0], row[1], int(row[2]), row[4], row[5], row[3], row[6]))
-                self.connection.commit()
-                return True
-            else:
-                
-                return False
-                 
-    def viewgood(self, id):
-            # self.connect()  
-
+        # self.connect()
+        if row[0] != "":
             query = "SELECT * FROM good WHERE GoodID = %s"
-            self.cursor.execute(query, (id,))
-
+            self.cursor.execute(query, (row[0],))
             rows = self.cursor.fetchall()
-            row = rows[-1]
-            # print(row)
-            return row  
-         
+        else:
+            rows = []
+
+        if len(rows) == 0:
+            query1 = "INSERT INTO good (GoodID, NameGood, СategoryID, Price, Image, Description, good) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            self.cursor.execute(
+                query1, (row[0], row[1], int(row[2]), row[4], row[5], row[3], row[6])
+            )
+            self.connection.commit()
+            return True
+        else:
+
+            return False
+
+    def viewgood(self, id):
+        # self.connect()
+
+        query = "SELECT * FROM good WHERE GoodID = %s"
+        self.cursor.execute(query, (id,))
+
+        rows = self.cursor.fetchall()
+        row = rows[-1]
+        # print(row)
+        return row
 
     def changegood(self, row, id):
-            # self.connect()  
-            if  row[5] == 1:
-                query1 = "UPDATE good SET NameGood = %s, СategoryID = %s, Price = %s, Description = %s, good = %s WHERE GoodID = %s"
-                self.cursor.execute(query1, (row[1], int(row[2]), row[4], row[3], row[6], id))
-                self.connection.commit()
-            else:     
-                query1 = "UPDATE good SET NameGood = %s, СategoryID = %s, Price = %s, Image = %s, Description = %s, good = %s WHERE GoodID = %s"
-                self.cursor.execute(query1, (row[1], int(row[2]), row[4], row[5], row[3], row[6], id))
-                self.connection.commit()
-            return True
-
+        # self.connect()
+        if row[5] == 1:
+            query1 = "UPDATE good SET NameGood = %s, СategoryID = %s, Price = %s, Description = %s, good = %s WHERE GoodID = %s"
+            self.cursor.execute(
+                query1, (row[1], int(row[2]), row[4], row[3], row[6], id)
+            )
+            self.connection.commit()
+        else:
+            query1 = "UPDATE good SET NameGood = %s, СategoryID = %s, Price = %s, Image = %s, Description = %s, good = %s WHERE GoodID = %s"
+            self.cursor.execute(
+                query1, (row[1], int(row[2]), row[4], row[5], row[3], row[6], id)
+            )
+            self.connection.commit()
+        return True
 
     def viewapps(self):
-            # self.connect()  
+        # self.connect()
 
-            query = "SELECT goodID, NameGood, Price, image FROM good WHERE  СategoryID = 1"
-            self.cursor.execute(query)
+        query = "SELECT goodID, NameGood, Price, image FROM good WHERE  СategoryID = 1"
+        self.cursor.execute(query)
 
-            rows = self.cursor.fetchall()
-            
-            # print(rows)
-            return rows
+        rows = self.cursor.fetchall()
+
+        # print(rows)
+        return rows
 
     def findapps(self, s):
-            # self.connect()  
+        # self.connect()
 
-            query = "SELECT goodID, NameGood, Price, image FROM good WHERE СategoryID = 1 AND NameGood LIKE %s"
-            self.cursor.execute(query, ('%' + s + '%',))
+        query = "SELECT goodID, NameGood, Price, image FROM good WHERE СategoryID = 1 AND NameGood LIKE %s"
+        self.cursor.execute(query, ("%" + s + "%",))
 
-            rows = self.cursor.fetchall()
-            
-            # print(rows)
-            return rows
-    
+        rows = self.cursor.fetchall()
+
+        # print(rows)
+        return rows
+
     def findgames(self, s):
-            # self.connect()  
+        # self.connect()
 
-            query = "SELECT goodID, NameGood, Price, image FROM good WHERE СategoryID = 2 AND NameGood LIKE %s"
-            self.cursor.execute(query, ('%' + s + '%',))
+        query = "SELECT goodID, NameGood, Price, image FROM good WHERE СategoryID = 2 AND NameGood LIKE %s"
+        self.cursor.execute(query, ("%" + s + "%",))
 
-            rows = self.cursor.fetchall()
-            
-            # print(rows)
-            return rows
+        rows = self.cursor.fetchall()
+
+        # print(rows)
+        return rows
 
     def viewgames(self):
-            # self.connect()  
+        # self.connect()
 
-            query = "SELECT goodID, NameGood, Price, image  FROM good WHERE  СategoryID = 2"
-            self.cursor.execute(query)
+        query = "SELECT goodID, NameGood, Price, image  FROM good WHERE  СategoryID = 2"
+        self.cursor.execute(query)
 
-            rows = self.cursor.fetchall()
-            
-            # print(rows)
-            return rows
-    
-    def viewcart(self,userid):
-            # self.connect() 
-            
-            query = """
+        rows = self.cursor.fetchall()
+
+        # print(rows)
+        return rows
+
+    def viewcart(self, userid):
+        # self.connect()
+
+        query = """
                 SELECT cartitem.cartitemID, good.NameGood, good.Price, cartitem.Quantity 
                 FROM cart 
                 JOIN user ON cart.UserID = user.UserID 
@@ -219,18 +231,18 @@ class workwithbd(connection):
                 WHERE cart.userid = %s  AND cart.status = 'In Cart'
             """
 
-            self.cursor.execute(query, (userid,))
-            rows = self.cursor.fetchall()
-            print(rows)
+        self.cursor.execute(query, (userid,))
+        rows = self.cursor.fetchall()
+        print(rows)
 
-            if len(rows) > 0:
-                return rows
-            else:
-                rows = []
-                return rows
-            
+        if len(rows) > 0:
+            return rows
+        else:
+            rows = []
+            return rows
+
     def add_to_cart(self, userid, id):
-         # self.connect()
+        # self.connect()
         query = """
                 SELECT cartID
                 FROM cart  
@@ -248,10 +260,10 @@ class workwithbd(connection):
 
         self.cursor.execute(query, (cartid, id))
         rows = self.cursor.fetchall()
-        if len (rows) == 0:
+        if len(rows) == 0:
             query = "INSERT INTO cartitem (cartitemID, CartID, GoodID, Quantity) VALUES (null, %s, %s, 1)"
 
-            self.cursor.execute(query, (cartid,id))
+            self.cursor.execute(query, (cartid, id))
             self.connection.commit()
         else:
             cartitemid = rows[0][0]
@@ -263,16 +275,13 @@ class workwithbd(connection):
             self.cursor.execute(query, (cartitemid,))
             rows = self.cursor.fetchall()
 
-
             quantity = rows[0][0]
             query1 = "UPDATE cartitem SET quantity = %s WHERE cartitemID = %s"
             self.cursor.execute(query1, (quantity + 1, cartitemid))
             self.connection.commit()
-             
-
 
     def checkcart(self, userid):
-         # self.connect()
+        # self.connect()
         query = """
                 SELECT cartID
                 FROM cart 
@@ -282,33 +291,34 @@ class workwithbd(connection):
         self.cursor.execute(query, (userid,))
         rows = self.cursor.fetchall()
 
-        if len (rows) == 0:
+        if len(rows) == 0:
             print(userid)
-            query = "INSERT INTO cart (cartID, UserID, Status) VALUES (null, %s, 'In Cart')"
+            query = (
+                "INSERT INTO cart (cartID, UserID, Status) VALUES (null, %s, 'In Cart')"
+            )
             self.cursor.execute(query, (int(userid),))
             self.connection.commit()
             return True
         else:
             return True
-                 
-             
+
     def plus(self, id):
-            # self.connect()  
-            query = """
+        # self.connect()
+        query = """
                 SELECT quantity
                 FROM cartitem 
                 WHERE cartitemID = %s 
             """
-            self.cursor.execute(query, (id,))
-            rows = self.cursor.fetchall()
-            quantity = rows[0][0]
-            query1 = "UPDATE cartitem SET quantity = %s WHERE cartitemID = %s"
-            self.cursor.execute(query1, (quantity+1, id))
-            self.connection.commit()
-            return True    
+        self.cursor.execute(query, (id,))
+        rows = self.cursor.fetchall()
+        quantity = rows[0][0]
+        query1 = "UPDATE cartitem SET quantity = %s WHERE cartitemID = %s"
+        self.cursor.execute(query1, (quantity + 1, id))
+        self.connection.commit()
+        return True
 
     def minus(self, id):
-         # self.connect()
+        # self.connect()
         query = """
             SELECT quantity
             FROM cartitem 
@@ -317,14 +327,13 @@ class workwithbd(connection):
         self.cursor.execute(query, (id,))
         rows = self.cursor.fetchall()
 
-
         quantity = rows[0][0]
-        
+
         if quantity == 1:
             query1 = "DELETE FROM cartitem WHERE cartitemID = %s"
             self.cursor.execute(query1, (id,))
             self.connection.commit()
-        else:     
+        else:
             query1 = "UPDATE cartitem SET quantity = %s WHERE cartitemID = %s"
             self.cursor.execute(query1, (quantity - 1, id))
             self.connection.commit()
@@ -332,27 +341,25 @@ class workwithbd(connection):
         return True
 
     def delete(self, id):
-         # self.connect()
-       
+        # self.connect()
+
         query1 = "DELETE FROM cartitem WHERE cartitemID = %s"
         self.cursor.execute(query1, (id,))
         self.connection.commit()
 
-
         return True
-    
+
     def deletegood(self, id):
-         # self.connect()
-       
+        # self.connect()
+
         query1 = "DELETE FROM good WHERE goodID = %s"
         self.cursor.execute(query1, (id,))
         self.connection.commit()
 
-
         return True
-    
+
     def payment(self, userid, sum):
-         # self.connect()
+        # self.connect()
         query = """
             SELECT cartid
             FROM cart 
@@ -360,7 +367,6 @@ class workwithbd(connection):
         """
         self.cursor.execute(query, (userid,))
         rows = self.cursor.fetchall()
-
 
         cartid = rows[0][0]
 
@@ -371,16 +377,15 @@ class workwithbd(connection):
             """
 
         self.cursor.execute(query, (userid,))
-        self.connection.commit() 
+        self.connection.commit()
 
         query1 = "insert into payment (PaymentID, userid, cartid, amount, paymentdate) values (null, %s, %s, %s, NOW())"
         self.cursor.execute(query1, (userid, cartid, sum))
         self.connection.commit()
         return True
-    
 
     def history(self, userid):
-         # self.connect()
+        # self.connect()
         query = """
             SELECT payment.paymentDate, good.NameGood, good.Price, cartitem.Quantity, good.Good 
             FROM payment
@@ -392,13 +397,13 @@ class workwithbd(connection):
         """
         self.cursor.execute(query, (userid,))
         rows = self.cursor.fetchall()
-        if len (rows) == 0:
+        if len(rows) == 0:
             return []
         else:
-             return rows
-        
+            return rows
+
     def receit(self, userid):
-         # self.connect()
+        # self.connect()
         query = """
         SELECT
             payment.paymentDate,
@@ -423,16 +428,15 @@ class workwithbd(connection):
             );
 
         """
-        self.cursor.execute(query, (userid,userid))
+        self.cursor.execute(query, (userid, userid))
         rows = self.cursor.fetchall()
-        if len (rows) == 0:
+        if len(rows) == 0:
             return []
         else:
-             return rows
-        
+            return rows
 
     def otchet(self):
-         # self.connect()
+        # self.connect()
         query = """
         SELECT
             payment.paymentDate,
@@ -449,8 +453,7 @@ class workwithbd(connection):
         """
         self.cursor.execute(query)
         rows = self.cursor.fetchall()
-        if len (rows) == 0:
+        if len(rows) == 0:
             return []
         else:
-             return rows
-             
+            return rows

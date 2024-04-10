@@ -1,10 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from database import *
+import uvicorn
 
 app = FastAPI()
 
+conn = workwithbd("localhost", "root", "", "mdk_bd")
 
-# Pydantic model to define the schema of the data
+
 class Item(BaseModel):
     name: str
     description: str = None
@@ -59,6 +62,5 @@ def delete_item(item_id: int):
 
 
 if __name__ == "__main__":
-    import uvicorn
 
     uvicorn.run(app, host="localhost", port=8000)
