@@ -1,18 +1,33 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Optional
 from database import *
 import uvicorn
 
 app = FastAPI()
 
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 conn = workwithbd("localhost", "root", "", "mdk_bd")
 
 
 class product_item(BaseModel):
-    goodid: str
-    title: str
-    category: str
-    price: int
+    id: Optional[int] = None
+    title: Optional[str] = None
+    category: Optional[int] = None
+    price: Optional[int] = None
 
 
 class products(BaseModel):
@@ -35,12 +50,22 @@ class Item(BaseModel):
     description: str = None
 
 
-@app.get("/items/", response_model=product_item)
+@app.get("/products/", response_model=products)
 def read_item():
     results = conn.get_goods()
+    product_items = []
     if len(results) == 0:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return {"goodid": str(results[0][0]), "title": results[0][1], "category": results[0][2],"price": results[0][3]}
+        return {
+            "count": 0,
+            "results": [{"id": None, "title": None, "category": None, "price": None}],
+        }
+
+    for i in results:
+        product_items.append(
+            product_item(id=i[0], title=i[1], category=i[2], price=i[3])
+        )
+
+    return {"count": len(results), "results": product_items}
 
 
 # Route to create an item

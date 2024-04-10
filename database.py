@@ -22,7 +22,6 @@ class connection:
             )
 
             if self.connection.is_connected():
-                print(f"Успешно подключено к базе данных: {self.database}")
                 self.cursor = self.connection.cursor()
                 return self.cursor
 
@@ -33,12 +32,13 @@ class connection:
 class workwithbd(connection):
 
     def get_goods(self):
-        # self.connect()
+        self.connect()
 
-        query = "SELECT g.goodID, g.NameGood, c.NameCat, g.Price, g.Images FROM good as g JOIN category as c on g.СategoryID = c.CategoryID;"
+        query = "SELECT goodID, NameGood, СategoryID, Price, Images FROM good;"
         self.cursor.execute(query)
 
         rows = self.cursor.fetchall()
+        self.cursor.close()
 
         # print(rows)
         return rows
