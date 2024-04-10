@@ -3,10 +3,12 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
+
 # Pydantic model to define the schema of the data
 class Item(BaseModel):
     name: str
     description: str = None
+
 
 # Route to create an item
 @app.post("/items/", response_model=Item)
@@ -18,6 +20,7 @@ def create_item(item: Item):
     item.id = cursor.lastrowid
     cursor.close()
     return item
+
 
 # Route to read an item
 @app.get("/items/{item_id}", response_model=Item)
@@ -31,6 +34,7 @@ def read_item(item_id: int):
         raise HTTPException(status_code=404, detail="Item not found")
     return {"id": item[0], "name": item[1], "description": item[2]}
 
+
 # Route to update an item
 @app.put("/items/{item_id}", response_model=Item)
 def update_item(item_id: int, item: Item):
@@ -42,6 +46,7 @@ def update_item(item_id: int, item: Item):
     item.id = item_id
     return item
 
+
 # Route to delete an item
 @app.delete("/items/{item_id}", response_model=Item)
 def delete_item(item_id: int):
@@ -51,6 +56,7 @@ def delete_item(item_id: int):
     conn.commit()
     cursor.close()
     return {"id": item_id}
+
 
 if __name__ == "__main__":
     import uvicorn
