@@ -31,101 +31,16 @@ class connection:
 
 
 class workwithbd(connection):
-    def auth(self, login, password):
 
-        query = "SELECT * FROM user WHERE Login = %s  AND Password = %s"
-        self.cursor.execute(query, (login, password))
-
-        rows = self.cursor.fetchall()
-
-        if len(rows) > 0:
-            print("Авторизация успешна.")
-            row = rows[-1]
-            print(row[-1])
-            return row[-1]
-        else:
-            print("Неверные учетные данные.")
-            return 2
-
-    def register(self, login, password):
+    def get_goods(self):
         # self.connect()
 
-        query = "SELECT * FROM user WHERE Login = %s "
-        self.cursor.execute(query, (login,))
-
-        rows = self.cursor.fetchall()
-
-        if len(rows) == 0:
-            query1 = f"""INSERT INTO user (UserID, Surname, Name, Lastname, Phonenumber, Email, Login, Password, ISAdmin) VALUES (null, null, null, null, null, null, '{login}', '{password}', '0');"""
-            self.cursor.execute(query1)
-            self.connection.commit()
-
-            return True
-        else:
-            print("Найдено совпадение пользователя.")
-            return False
-
-    def userID(self, login, password):
-        query = "SELECT userID FROM user WHERE Login = %s AND Password = %s"
-        self.cursor.execute(query, (login, password))
-
-        rows = self.cursor.fetchall()
-        return rows[0][0]
-
-    def settings(self, login, password):
-        # self.connect()
-
-        query = "SELECT * FROM user WHERE Login = %s AND Password = %s"
-        self.cursor.execute(query, (login, password))
-
-        rows = self.cursor.fetchall()
-        row = rows[-1]
-        print(row)
-        return row
-
-    def savechanges(self, login, password, row):
-        #  self.connect()
-
-        query = """
-            SELECT login 
-            from user 
-            WHERE Login = %s 
-            """
-        self.cursor.execute(query, (row[5],))
-        rows = self.cursor.fetchall()
-        print(rows[0][0], login)
-        if rows == 0 or rows[0][0] == login:
-            query = """
-                UPDATE user 
-                SET Surname = %s, Name = %s, Lastname = %s, Phonenumber = %s, Email = %s, Login = %s, Password = %s 
-                WHERE Login = %s AND Password = %s
-                """
-
-            values = (
-                row[0],
-                row[1],
-                row[2],
-                row[3],
-                row[4],
-                row[5],
-                row[6],
-                login,
-                password,
-            )
-
-            self.cursor.execute(query, values)
-            self.connection.commit()
-            return True
-        else:
-            return False
-
-    def admin(self):
-        #  self.connect()
-
-        query = "SELECT good.GoodID, good.NameGood, category.NameCat, good.Price, good.Image, good.Description, good.good FROM good LEFT JOIN category ON good.СategoryID = category.CategoryID; "
+        query = "SELECT g.goodID, g.NameGood, c.NameCat, g.Price, g.Images FROM good as g JOIN category as c on g.СategoryID = c.CategoryID;"
         self.cursor.execute(query)
 
         rows = self.cursor.fetchall()
+
+        # print(rows)
         return rows
 
     def savegood(self, row):
@@ -178,12 +93,12 @@ class workwithbd(connection):
     def viewapps(self):
         # self.connect()
 
-        query = "SELECT goodID, NameGood, Price, image FROM good WHERE  СategoryID = 1"
+        query = "SELECT g.goodID, g.NameGood, c.NameCat, g.Price, g.Images FROM good as g JOIN category as c on g.СategoryID = c.CategoryID;"
         self.cursor.execute(query)
 
         rows = self.cursor.fetchall()
 
-        # print(rows)
+        print(rows)
         return rows
 
     def findapps(self, s):
