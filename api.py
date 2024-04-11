@@ -2,7 +2,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
-from database import *
+
+# from database import *
+from test import *
 import uvicorn
 
 app = FastAPI()
@@ -20,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-conn = workwithbd("localhost", "root", "", "mdk_bd")
+# conn = workwithbd("localhost", "root", "", "mdk_bd")
 
 
 class product_item(BaseModel):
@@ -29,30 +31,45 @@ class product_item(BaseModel):
     category: Optional[int] = None
     price: Optional[int] = None
 
+    class Config:
+        orm_mode = True
+
 
 class products(BaseModel):
     count: int
     results: list[product_item]
+
+    class Config:
+        orm_mode = True
 
 
 class category_item(BaseModel):
     id: Optional[int] = None
     title: Optional[str] = None
 
+    class Config:
+        orm_mode = True
+
 
 class categories(BaseModel):
     count: int
     results: list[category_item]
+
+    class Config:
+        orm_mode = True
 
 
 class Item(BaseModel):
     name: str
     description: str = None
 
+    class Config:
+        orm_mode = True
+
 
 @app.get("/products/", response_model=products)
-def read_item():
-    results = conn.get_goods()
+async def read_item():
+    results = await conn.get_goods()
     product_items = []
     if len(results) == 0:
         return {
@@ -68,15 +85,15 @@ def read_item():
     return {"count": len(results), "results": product_items}
 
 
-@app.post("/products/", response_model=product_item)
-def create_item(product: product_item):
-    conn.post_goods(product)
-    return product
+# @app.post("/products/", response_model=product_item)
+# def create_item(product: product_item):
+#     conn.post_goods(product)
+#     return product
 
 
 @app.get("/categories/", response_model=categories)
-def read_item():
-    results = conn.get_category()
+async def read_item():
+    results = await conn.get_category()
     category_items = []
     if len(results) == 0:
         return {
@@ -139,5 +156,7 @@ def read_item():
 
 
 if __name__ == "__main__":
+
+    conn = workwithbd()
 
     uvicorn.run(app, host="127.0.0.1", port=9010)
