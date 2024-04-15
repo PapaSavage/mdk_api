@@ -29,7 +29,7 @@ class workwithbd:
 
     async def get_goods(self):
         async with self.async_session() as session:
-            stmt = text("SELECT goodID, NameGood, СategoryID, Price, Images FROM good;")
+            stmt = text("SELECT goodID, NameGood, CategoryID, Price, Images FROM good;")
             result = await session.execute(stmt, {"age_threshold": 30})
             rows = result.all()
             print(rows)
@@ -54,6 +54,37 @@ class workwithbd:
                     "name": product.title,
                     "category_id": product.category,
                     "price": product.price,
+                }
+                result = await session.execute(stmt, params)
+                await session.commit()  # Подтверждаем транзакцию после успешного выполнения
+                return product
+        except SQLAlchemyError as e:
+            print(f"Ошибка при выполнении операции INSERT: {e}")
+
+    async def post_categories(self, category):
+        try:
+            async with self.async_session() as session:
+                stmt = text("INSERT INTO category (NameCat) VALUES (:name_category);")
+                params = {
+                    "name_category": category.title,
+                }
+                result = await session.execute(stmt, params)
+                await session.commit()  # Подтверждаем транзакцию после успешного выполнения
+                return category
+        except SQLAlchemyError as e:
+            print(f"Ошибка при выполнении операции INSERT: {e}")
+
+    async def put_product(self, product, item_id):
+        try:
+            async with self.async_session() as session:
+                stmt = text(
+                    "UPDATE good SET NameGood = :name, CategoryID = :category_id, Price = :price WHERE GoodID = :good_id;"
+                )
+                params = {
+                    "name": product.title,
+                    "category_id": product.category,
+                    "price": product.price,
+                    "good_id": item_id,
                 }
                 result = await session.execute(stmt, params)
                 await session.commit()  # Подтверждаем транзакцию после успешного выполнения

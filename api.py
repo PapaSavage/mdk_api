@@ -111,6 +111,19 @@ async def create_good(product: product_item):
     return result
 
 
+# Route to update an item
+@app.put("/products/{item_id}/", response_model=product_item)
+async def update_item(product: product_item, item_id: int):
+    result = await conn.put_product(product, item_id)
+    return result
+
+
+@app.post("/categories/", response_model=category_item)
+async def create_category(category: category_item):
+    result = await conn.post_categories(category)
+    return result
+
+
 # Route to create an item
 # @app.post("items/", response_model=Item)
 # def create_item(item: Item):
@@ -134,18 +147,6 @@ async def create_good(product: product_item):
 #     if item is None:
 #         raise HTTPException(status_code=404, detail="Item not found")
 #     return {"id": item[0], "name": item[1], "description": item[2]}
-
-
-# Route to update an item
-# @app.put("products/{item_id}/", response_model=Item)
-# def update_item(item_id: int, item: Item):
-#     cursor = conn.cursor()
-#     query = "UPDATE items SET name=%s, description=%s WHERE id=%s"
-#     cursor.execute(query, (item.name, item.description, item_id))
-#     conn.commit()
-#     cursor.close()
-#     item.id = item_id
-#     return item
 
 
 # # Route to delete an item

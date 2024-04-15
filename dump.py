@@ -325,7 +325,6 @@ class workwithbd(connection):
         return True
 
     def history(self, userid):
-        # self.connect()
         query = """
             SELECT payment.paymentDate, good.NameGood, good.Price, cartitem.Quantity, good.Good 
             FROM payment
