@@ -114,7 +114,19 @@ async def create_good(product: product_item):
 # Route to update an item
 @app.put("/products/{item_id}/", response_model=product_item)
 async def update_item(product: product_item, item_id: int):
-    result = await conn.put_product(product, item_id)
+    result = await conn.put_good(product, item_id)
+    return result
+
+
+@app.delete("/products/{item_id}/")
+async def delete_product(item_id: int):
+    result = await conn.delete_product(item_id)
+    return result
+
+
+@app.delete("/categories/{item_id}/")
+async def delete_category(item_id: int):
+    result = await conn.delete_category(item_id)
     return result
 
 
@@ -123,41 +135,6 @@ async def create_category(category: category_item):
     result = await conn.post_categories(category)
     return result
 
-
-# Route to create an item
-# @app.post("items/", response_model=Item)
-# def create_item(item: Item):
-#     cursor = conn.cursor()
-#     query = "INSERT INTO items (name, description) VALUES (%s, %s)"
-#     cursor.execute(query, (item.name, item.description))
-#     conn.commit()
-#     item.id = cursor.lastrowid
-#     cursor.close()
-#     return item
-
-
-# Route to read an item
-# @app.get("items/{item_id}/", response_model=Item)
-# def read_item(item_id: int):
-#     cursor = conn.cursor()
-#     query = "SELECT id, name, description FROM items WHERE id=%s"
-#     cursor.execute(query, (item_id,))
-#     item = cursor.fetchone()
-#     cursor.close()
-#     if item is None:
-#         raise HTTPException(status_code=404, detail="Item not found")
-#     return {"id": item[0], "name": item[1], "description": item[2]}
-
-
-# # Route to delete an item
-# @app.delete("/items/{item_id}", response_model=Item)
-# def delete_item(item_id: int):
-#     cursor = conn.cursor()
-#     query = "DELETE FROM items WHERE id=%s"
-#     cursor.execute(query, (item_id,))
-#     conn.commit()
-#     cursor.close()
-#     return {"id": item_id
 
 if __name__ == "__main__":
 

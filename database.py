@@ -48,7 +48,7 @@ class workwithbd:
         try:
             async with self.async_session() as session:
                 stmt = text(
-                    "INSERT INTO good (NameGood, СategoryID, Price) VALUES (:name, :category_id, :price);"
+                    "INSERT INTO good (NameGood, CategoryID, Price) VALUES (:name, :category_id, :price);"
                 )
                 params = {
                     "name": product.title,
@@ -74,7 +74,7 @@ class workwithbd:
         except SQLAlchemyError as e:
             print(f"Ошибка при выполнении операции INSERT: {e}")
 
-    async def put_product(self, product, item_id):
+    async def put_good(self, product, item_id):
         try:
             async with self.async_session() as session:
                 stmt = text(
@@ -89,5 +89,31 @@ class workwithbd:
                 result = await session.execute(stmt, params)
                 await session.commit()  # Подтверждаем транзакцию после успешного выполнения
                 return product
+        except SQLAlchemyError as e:
+            print(f"Ошибка при выполнении операции INSERT: {e}")
+
+    async def delete_product(self, item_id):
+        try:
+            async with self.async_session() as session:
+                stmt = text("DELETE FROM good WHERE GoodID = :good_id;")
+                params = {
+                    "good_id": item_id,
+                }
+                result = await session.execute(stmt, params)
+                await session.commit()  # Подтверждаем транзакцию после успешного выполнения
+
+        except SQLAlchemyError as e:
+            print(f"Ошибка при выполнении операции INSERT: {e}")
+
+    async def delete_category(self, item_id):
+        try:
+            async with self.async_session() as session:
+                stmt = text("DELETE FROM category WHERE CategoryID = :category_id;")
+                params = {
+                    "category_id": item_id,
+                }
+                result = await session.execute(stmt, params)
+                await session.commit()  # Подтверждаем транзакцию после успешного выполнения
+
         except SQLAlchemyError as e:
             print(f"Ошибка при выполнении операции INSERT: {e}")
