@@ -29,7 +29,9 @@ class workwithbd:
 
     async def get_goods(self):
         async with self.async_session() as session:
-            stmt = text("SELECT goodID, NameGood, CategoryID, Price, Images FROM good;")
+            stmt = text(
+                "SELECT goodID, NameGood, CategoryID, Price, TO_BASE64(Images) FROM good;"
+            )
             result = await session.execute(stmt, {"age_threshold": 30})
             rows = result.all()
             print(rows)

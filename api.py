@@ -31,6 +31,17 @@ class product_item(BaseModel):
     title: Optional[str] = None
     category: Optional[int] = None
     price: Optional[float] = None
+    images: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class add_product_item(BaseModel):
+    id: Optional[int] = None
+    title: Optional[str] = None
+    category: Optional[int] = None
+    price: Optional[float] = None
 
     class Config:
         from_attributes = True
@@ -83,7 +94,7 @@ async def read_item():
 
     for i in results:
         product_items.append(
-            product_item(id=i[0], title=i[1], category=i[2], price=i[3])
+            product_item(id=i[0], title=i[1], category=i[2], price=i[3], images=i[4])
         )
 
     return {"count": len(results), "results": product_items}
