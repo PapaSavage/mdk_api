@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
@@ -123,9 +124,10 @@ async def create_good(product: product_item):
 
 
 # Route to update an item
-@app.put("/products/{item_id}/", response_model=product_item)
-async def update_item(product: product_item, item_id: int):
-    result = await conn.put_good(product, item_id)
+@app.put("/products/{item_id}/")
+async def update_item(
+    item_id: int, file: UploadFile, product_title: str, product_category: int, product_price: float):
+    result = await conn.put_good(await file.read(), product_title,product_category, product_price, item_id)
     return result
 
 
@@ -146,6 +148,11 @@ async def create_category(category: category_item):
     result = await conn.post_categories(category)
     return result
 
+@app.put("/file/{item_id}")
+async def upload_file(file: UploadFile, item_id: int):
+    contents = await file.read()
+    await conn.put_image(contents, item_id)
+    return {"filename": file.filename}
 
 if __name__ == "__main__":
 

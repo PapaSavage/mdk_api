@@ -76,21 +76,22 @@ class workwithbd:
         except SQLAlchemyError as e:
             print(f"Ошибка при выполнении операции INSERT: {e}")
 
-    async def put_good(self, product, item_id):
+    async def put_good(self, file, product_title,product_category, product_price, item_id):
         try:
             async with self.async_session() as session:
                 stmt = text(
-                    "UPDATE good SET NameGood = :name, CategoryID = :category_id, Price = :price WHERE GoodID = :good_id;"
+                    "UPDATE good SET NameGood = :name, CategoryID = :category_id, Price = :price, Images = :image WHERE GoodID = :good_id;"
                 )
                 params = {
-                    "name": product.title,
-                    "category_id": product.category,
-                    "price": product.price,
+                    "name": product_title,
+                    "category_id": product_category,
+                    "price": product_price,
                     "good_id": item_id,
+                    "image": file,
                 }
                 result = await session.execute(stmt, params)
-                await session.commit()  # Подтверждаем транзакцию после успешного выполнения
-                return product
+                await session.commit()
+
         except SQLAlchemyError as e:
             print(f"Ошибка при выполнении операции INSERT: {e}")
 
@@ -117,5 +118,20 @@ class workwithbd:
                 result = await session.execute(stmt, params)
                 await session.commit()  # Подтверждаем транзакцию после успешного выполнения
 
+        except SQLAlchemyError as e:
+            print(f"Ошибка при выполнении операции INSERT: {e}")
+
+    async def put_image(self, contents, item_id):
+        try:
+            async with self.async_session() as session:
+                stmt = text(
+                    "UPDATE good SET Images = :image WHERE GoodID = :good_id;"
+                )
+                params = {
+                    "image": contents,
+                    "id": item_id,
+                }
+                result = await session.execute(stmt, params)
+                await session.commit()  # Подтверждаем транзакцию после успешного выполнения
         except SQLAlchemyError as e:
             print(f"Ошибка при выполнении операции INSERT: {e}")
