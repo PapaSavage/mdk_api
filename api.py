@@ -2,9 +2,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
+import asyncio
 
 # from database import *
-from test import *
+from database import *
 import uvicorn
 
 app = FastAPI()
@@ -29,10 +30,10 @@ class product_item(BaseModel):
     id: Optional[int] = None
     title: Optional[str] = None
     category: Optional[int] = None
-    price: Optional[int] = None
+    price: Optional[float] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class products(BaseModel):
@@ -40,7 +41,7 @@ class products(BaseModel):
     results: list[product_item]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class category_item(BaseModel):
@@ -48,7 +49,7 @@ class category_item(BaseModel):
     title: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class categories(BaseModel):
@@ -56,7 +57,7 @@ class categories(BaseModel):
     results: list[category_item]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class Item(BaseModel):
@@ -64,17 +65,20 @@ class Item(BaseModel):
     description: str = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 @app.get("/products/", response_model=products)
 async def read_item():
     results = await conn.get_goods()
+
     product_items = []
     if len(results) == 0:
         return {
             "count": 0,
-            "results": [{"id": None, "title": None, "category": None, "price": None}],
+            "results": [
+                {"id": None, "title": None, "category_id": None, "price": None}
+            ],
         }
 
     for i in results:
@@ -83,12 +87,6 @@ async def read_item():
         )
 
     return {"count": len(results), "results": product_items}
-
-
-# @app.post("/products/", response_model=product_item)
-# def create_item(product: product_item):
-#     conn.post_goods(product)
-#     return product
 
 
 @app.get("/categories/", response_model=categories)
@@ -105,6 +103,12 @@ async def read_item():
         category_items.append(category_item(id=i[0], title=i[1]))
 
     return {"count": len(results), "results": category_items}
+
+
+@app.post("/products/", response_model=product_item)
+async def create_good(product: product_item):
+    result = await conn.post_goods(product)
+    return result
 
 
 # Route to create an item
@@ -152,11 +156,16 @@ async def read_item():
 #     cursor.execute(query, (item_id,))
 #     conn.commit()
 #     cursor.close()
-#     return {"id": item_id}
-
+#     return {"id": item_id
 
 if __name__ == "__main__":
 
     conn = workwithbd()
+
+    # asyncio.run(conn.check_connection())
+
+    # asyncio.run(
+    #     conn.post_goods(product_item(title="Карбонара", category_id=2, price=1500))
+    # )
 
     uvicorn.run(app, host="127.0.0.1", port=9010)
