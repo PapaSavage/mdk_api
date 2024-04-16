@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -117,17 +117,41 @@ async def read_item():
     return {"count": len(results), "results": category_items}
 
 
-@app.post("/products/", response_model=product_item)
-async def create_good(product: product_item):
-    result = await conn.post_goods(product)
+# @app.post("/products/", response_model=product_item)
+# async def create_good(product: product_item):
+#     result = await conn.post_goods(product)
+#     return result
+
+
+@app.post("/products/")
+async def create_good(
+    file: UploadFile = File(...),
+    title: str = Form(...),
+    category: int = Form(...),
+    price: float = Form(...),
+):
+    content = await file.read()
+    result = await conn.post_goods(content, title, category, price)
     return result
 
 
 # Route to update an item
 @app.put("/products/{item_id}/")
 async def update_item(
-    item_id: int, file: UploadFile, product_title: str, product_category: int, product_price: float):
-    result = await conn.put_good(await file.read(), product_title,product_category, product_price, item_id)
+    item_id: int,
+    file: UploadFile = File(None),
+    title: str = Form(...),
+    category: int = Form(...),
+    price: float = Form(...),
+):
+    print(file)
+    if file is None:
+        result = await conn.put_good_without_image(title, category, price, item_id)
+    else:
+        print(file)
+        result = await conn.put_good_with_image(
+            await file.read(), title, category, price, item_id
+        )
     return result
 
 
@@ -148,11 +172,13 @@ async def create_category(category: category_item):
     result = await conn.post_categories(category)
     return result
 
+
 @app.put("/file/{item_id}")
 async def upload_file(file: UploadFile, item_id: int):
     contents = await file.read()
     await conn.put_image(contents, item_id)
     return {"filename": file.filename}
+
 
 if __name__ == "__main__":
 
