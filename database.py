@@ -38,6 +38,53 @@ class workwithbd:
             rows = result.all()
             await session.commit()
             return rows
+        
+
+    async def get_orders(self):
+        async with self.async_session() as session:
+            # Запрос информации о заказах
+            order_stmt = text(
+                "SELECT "
+                "   o.OrderID, "
+                "   u.Name AS customer_name, "
+                "   u.Phonenumber AS customer_phone, "
+                "   u.Email AS customer_email, "
+                "   o.Status, "
+                "   o.Description AS order_description "
+                "FROM "
+                "   orders o "
+                "JOIN "
+                "   user u ON o.UserID = u.UserID;"
+            )
+            order_result = await session.execute(order_stmt)
+            orders = order_result.all()
+            # orders_with_items = []
+            # async for order in order_result:
+            #     order_dict = dict(order)
+            #     order_id = order_dict['OrderID']
+            #     item_stmt = text(
+            #         "SELECT "
+            #         "   g.NameGood AS title, "
+            #         "   g.CategoryID AS category, "
+            #         "   g.Price "
+            #         "FROM "
+            #         "   orderitem oi "
+            #         "JOIN "
+            #         "   good g ON oi.GoodID = g.GoodID "
+            #         "WHERE "
+            #         "   oi.OrderID = :order_id;"
+            #     )
+            #     item_result = await session.execute(item_stmt, {"order_id": order_id})
+            #     items = []
+            #     async for item in item_result:
+            #         items.append(dict(item))
+            #     order_dict['items'] = items
+            #     orders_with_items.append(order_dict)
+
+            # await session.commit()
+            return(orders)
+
+
 
     async def get_category(self):
         async with self.async_session() as session:

@@ -48,6 +48,25 @@ class add_product_item(BaseModel):
         from_attributes = True
 
 
+class order_item(BaseModel):
+    id: Optional[int] = None
+    customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
+    customer_email: Optional[str] = None
+    status: Optional[str] = None
+    description: Optional[str] = None
+    goods: list[add_product_item]
+
+    class Config:
+        from_attributes = True
+
+class orders(BaseModel):
+    count: int
+    results: list[order_item]
+
+    class Config:
+        from_attributes = True
+
 class products(BaseModel):
     count: int
     results: list[product_item]
@@ -100,6 +119,25 @@ async def read_item():
 
     return {"count": len(results), "results": product_items}
 
+@app.get("/orders/", response_model=orders)
+async def read_item():
+    results = await conn.get_orders()
+
+    order_items = []
+    if len(results) == 0:
+        return {
+            "count": 0,
+            "results": [
+                {"id": None, "customer_name": None, "customer_phone": None, "customer_email": None, "status": None, "description": None, "goods": []}
+            ],
+        }
+
+    for i in results:
+        order_items.append(
+            order_item(id=i[0], customer_name=i[1], customer_phone=i[2], customer_email=i[3], status=i[4], description=i[5], goods=[])
+        )
+
+    return {"count": len(results), "results": order_items}
 
 @app.get("/categories/", response_model=categories)
 async def read_item():
