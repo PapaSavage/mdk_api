@@ -38,26 +38,25 @@ class workwithbd:
             rows = result.all()
             await session.commit()
             return rows
-        
 
     async def get_orders(self):
         async with self.async_session() as session:
             # Запрос информации о заказах
-            order_stmt = text(
-                "SELECT "
-                "   o.OrderID, "
-                "   u.Name AS customer_name, "
-                "   u.Phonenumber AS customer_phone, "
-                "   u.Email AS customer_email, "
-                "   o.Status, "
-                "   o.Description AS order_description "
-                "FROM "
-                "   orders o "
-                "JOIN "
-                "   user u ON o.UserID = u.UserID;"
-            )
-            order_result = await session.execute(order_stmt)
-            orders = order_result.all()
+            # order_stmt = text(
+            #     "SELECT "
+            #     "   o.OrderID, "
+            #     "   u.Name AS customer_name, "
+            #     "   u.Phonenumber AS customer_phone, "
+            #     "   u.Email AS customer_email, "
+            #     "   o.Status, "
+            #     "   o.Description AS order_description "
+            #     "FROM "
+            #     "   orders o "
+            #     "JOIN "
+            #     "   user u ON o.UserID = u.UserID;"
+            # )
+            # order_result = await session.execute(order_stmt)
+            # orders = order_result.all()
             # orders_with_items = []
             # async for order in order_result:
             #     order_dict = dict(order)
@@ -82,9 +81,48 @@ class workwithbd:
             #     orders_with_items.append(order_dict)
 
             # await session.commit()
-            return(orders)
 
+            order_stmt = text(
+                "SELECT o.OrderID, u.Name AS customer_name, u.Phonenumber AS customer_phone, u.Email AS customer_email, o.Status, o.Description AS order_description, GROUP_CONCAT(g.GoodID, '-', g.NameGood, '-', g.CategoryID, '-', g.Price) as order_details FROM orders o JOIN user u ON o.UserID = u.UserID Join orderitem ot on ot.OrderID = o.OrderID join good g on g.GoodID = ot.GoodID;"
+            )
+            order_result = await session.execute(order_stmt)
+            orders = order_result.all()
 
+            orders_with_items = []
+
+            for order in orders:
+                # Преобразуем строку order[6] (order_description) в список, разделяя по '-'
+                order_description_parts = order[6].split(",")
+
+                # Создаем новый список, содержащий информацию о заказе и список товаров
+                order_with_items = list(order)  # Создаем копию списка order
+                order_with_items[6] = list(
+                    map(
+                        lambda x: x.split("-"),
+                        order_description_parts,
+                    )
+                )
+
+                dumplist = list()
+
+                for good in order_with_items[6]:
+                    dumplist.append(
+                        {
+                            "id": int(good[0]),
+                            "title": good[1],
+                            "category": int(good[2]),
+                            "price": float(good[3]),
+                        }
+                    )
+
+                order_with_items[6] = dumplist
+
+                # Заменяем order_description на список товаров
+                orders_with_items.append(order_with_items)
+
+            print(orders_with_items)
+
+            return orders_with_items
 
     async def get_category(self):
         async with self.async_session() as session:
@@ -197,7 +235,7 @@ class workwithbd:
                 stmt = text("UPDATE good SET Images = :image WHERE GoodID = :good_id;")
                 params = {
                     "image": contents,
-                    "id": item_id,
+                    "good_id": item_id,
                 }
                 result = await session.execute(stmt, params)
                 await session.commit()  # Подтверждаем транзакцию после успешного выполнения

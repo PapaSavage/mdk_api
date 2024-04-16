@@ -14,6 +14,7 @@ app = FastAPI()
 origins = [
     "http://localhost",
     "http://localhost:3000",
+    "http://localhost:3001",
 ]
 
 app.add_middleware(
@@ -60,12 +61,14 @@ class order_item(BaseModel):
     class Config:
         from_attributes = True
 
+
 class orders(BaseModel):
     count: int
     results: list[order_item]
 
     class Config:
         from_attributes = True
+
 
 class products(BaseModel):
     count: int
@@ -119,7 +122,8 @@ async def read_item():
 
     return {"count": len(results), "results": product_items}
 
-@app.get("/orders/", response_model=orders)
+
+@app.get("/orders/")
 async def read_item():
     results = await conn.get_orders()
 
@@ -128,16 +132,32 @@ async def read_item():
         return {
             "count": 0,
             "results": [
-                {"id": None, "customer_name": None, "customer_phone": None, "customer_email": None, "status": None, "description": None, "goods": []}
+                {
+                    "id": None,
+                    "customer_name": None,
+                    "customer_phone": None,
+                    "customer_email": None,
+                    "status": None,
+                    "description": None,
+                    "goods": [],
+                }
             ],
         }
-
     for i in results:
         order_items.append(
-            order_item(id=i[0], customer_name=i[1], customer_phone=i[2], customer_email=i[3], status=i[4], description=i[5], goods=[])
+            order_item(
+                id=i[0],
+                customer_name=i[1],
+                customer_phone=i[2],
+                customer_email=i[3],
+                status=i[4],
+                description=i[5],
+                goods=i[6],
+            )
         )
 
     return {"count": len(results), "results": order_items}
+
 
 @app.get("/categories/", response_model=categories)
 async def read_item():
