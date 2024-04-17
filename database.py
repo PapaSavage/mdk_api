@@ -83,7 +83,7 @@ class workwithbd:
             # await session.commit()
 
             order_stmt = text(
-                "SELECT o.OrderID, u.Name AS customer_name, u.Phonenumber AS customer_phone, u.Email AS customer_email, o.Status, o.Description AS order_description, GROUP_CONCAT(g.GoodID, '-', g.NameGood, '-', g.CategoryID, '-', g.Price) as order_details FROM orders o JOIN user u ON o.UserID = u.UserID Join orderitem ot on ot.OrderID = o.OrderID join good g on g.GoodID = ot.GoodID;"
+                "SELECT o.OrderID,u.Name AS customer_name, u.Phonenumber AS customer_phone, u.Email AS customer_email, o.Status, o.Description AS order_description, (SELECT GROUP_CONCAT(g.GoodID, '-', g.NameGood, '-', g.CategoryID, '-', g.Price) FROM orderitem ot JOIN good g ON g.GoodID = ot.GoodID WHERE ot.OrderID = o.OrderID) as order_details FROM orders o JOIN user u ON o.UserID = u.UserID;"
             )
             order_result = await session.execute(order_stmt)
             orders = order_result.all()
