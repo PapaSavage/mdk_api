@@ -192,6 +192,10 @@ async def create_good(
     result = await conn.post_goods(content, title, category, price)
     return result
 
+@app.put("/orders/{order_id}/")
+async def update_order(order_id: int, status: str):
+    result = await conn.put_orders(order_id, status)
+    return result
 
 # Route to update an item
 @app.put("/products/{item_id}/")

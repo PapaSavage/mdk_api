@@ -184,6 +184,23 @@ class workwithbd:
         except SQLAlchemyError as e:
             print(f"Ошибка при выполнении операции INSERT: {e}")
 
+
+    async def put_orders(self, order_id, status):
+        try:
+            async with self.async_session() as session:
+                stmt = text(
+                    "UPDATE orders SET Status = :status WHERE OrderID = :order_id;"
+                )
+                params = {
+                    "status": status,
+                    "order_id": order_id,    
+                }
+                result = await session.execute(stmt, params)
+                await session.commit()
+
+        except SQLAlchemyError as e:
+            print(f"Ошибка при выполнении операции INSERT: {e}")
+
     async def put_good_with_image(self, file, title, category, price, item_id):
         try:
             async with self.async_session() as session:
