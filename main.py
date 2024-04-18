@@ -10,6 +10,7 @@ from database import *
 import uvicorn
 
 app = FastAPI()
+conn = workwithbd()
 
 origins = [
     "http://localhost",
@@ -243,16 +244,3 @@ async def upload_file(file: UploadFile, item_id: int):
     contents = await file.read()
     await conn.put_image(contents, item_id)
     return {"filename": file.filename}
-
-
-if __name__ == "__main__":
-
-    conn = workwithbd()
-
-    # asyncio.run(conn.check_connection())
-
-    # asyncio.run(
-    #     conn.post_goods(product_item(title="Карбонара", category_id=2, price=1500))
-    # )
-
-    uvicorn.run(app, host="127.0.0.1", port=9010)
