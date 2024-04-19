@@ -83,7 +83,7 @@ class workwithbd:
             # await session.commit()
 
             order_stmt = text(
-                "SELECT o.OrderID,u.Name AS customer_name, u.Phonenumber AS customer_phone, u.Email AS customer_email, o.Status, o.Description AS order_description, (SELECT GROUP_CONCAT(g.GoodID, '-', g.NameGood, '-', g.CategoryID, '-', g.Price) FROM orderitem ot JOIN good g ON g.GoodID = ot.GoodID WHERE ot.OrderID = o.OrderID) as order_details FROM orders o JOIN user u ON o.UserID = u.UserID;"
+                "SELECT o.OrderID,u.Name AS customer_name, u.Phonenumber AS customer_phone, u.Email AS customer_email, o.Status, o.Description AS order_description, (SELECT GROUP_CONCAT(g.GoodID, '-', g.NameGood, '-', g.CategoryID, '-', g.Price, '-', ot.Quantity) FROM orderitem ot JOIN good g ON g.GoodID = ot.GoodID WHERE ot.OrderID = o.OrderID) as order_details FROM orders o JOIN user u ON o.UserID = u.UserID;"
             )
             order_result = await session.execute(order_stmt)
             orders = order_result.all()
@@ -112,6 +112,7 @@ class workwithbd:
                             "title": good[1],
                             "category": int(good[2]),
                             "price": float(good[3]),
+                            "quantity": int(good[4]),
                         }
                     )
 
@@ -153,6 +154,52 @@ class workwithbd:
         except SQLAlchemyError as e:
             print(f"Ошибка при выполнении операции INSERT: {e}")
 
+
+    async def post_order(self, order_item):
+        try:
+            async with self.async_session() as session:
+                user_stmt = text(
+                    "INSERT INTO user (Surname, Name, Lastname, Phonenumber, Email) VALUES (:surname, :name, :lastname, :phone, :email);"
+                )
+                user_params = {
+                    "surname": None,
+                    "name": order_item.customer_name,
+                    "lastname": None,
+                    "phone": order_item.customer_phone,
+                    "email": order_item.customer_email,
+                }
+                user_result = await session.execute(user_stmt, user_params)
+                await session.commit()
+
+                user_id = user_result.lastrowid
+
+                order_stmt = text(
+                    "INSERT INTO orders (UserID, Status, Description) VALUES (:user_id, :status, :description);"
+                )
+                order_params = {
+                    "user_id": user_id,
+                    "status": order_item.status,
+                    "description": order_item.description,
+                }
+                order_result = await session.execute(order_stmt, order_params)
+                await session.commit()
+                order_id = order_result.lastrowid
+
+                for good in order_item.goods:
+                    order_item_stmt = text(
+                        "INSERT INTO orderitem (OrderID, GoodID, Quantity) VALUES (:order_id, :good_id, :quantity);"
+                    )
+                    order_item_params = {
+                        "order_id": order_id,
+                        "good_id": good.id,
+                        "quantity": good.quantity, 
+                    }
+                    await session.execute(order_item_stmt, order_item_params)
+                    await session.commit()
+                return user_id
+        except SQLAlchemyError as e:
+            print(f"Ошибка при выполнении операции INSERT: {e}")
+
     async def post_categories(self, category):
         try:
             async with self.async_session() as session:
@@ -161,7 +208,7 @@ class workwithbd:
                     "name_category": category.title,
                 }
                 result = await session.execute(stmt, params)
-                await session.commit()  # Подтверждаем транзакцию после успешного выполнения
+                await session.commit()
                 return category
         except SQLAlchemyError as e:
             print(f"Ошибка при выполнении операции INSERT: {e}")
