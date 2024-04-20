@@ -58,10 +58,14 @@ class product_for_order(BaseModel):
     class Config:
         from_attributes = True
 
+
 class add_order_item(BaseModel):
+    customer_surname: Optional[str] = None
     customer_name: Optional[str] = None
+    customer_lastname: Optional[str] = None
     customer_phone: Optional[str] = None
     customer_email: Optional[str] = None
+    order_address: Optional[str] = None
     status: Optional[str] = None
     description: Optional[str] = None
     goods: list[product_for_order]

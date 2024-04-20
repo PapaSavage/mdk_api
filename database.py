@@ -154,7 +154,6 @@ class workwithbd:
         except SQLAlchemyError as e:
             print(f"Ошибка при выполнении операции INSERT: {e}")
 
-
     async def post_order(self, order_item):
         try:
             async with self.async_session() as session:
@@ -162,9 +161,9 @@ class workwithbd:
                     "INSERT INTO user (Surname, Name, Lastname, Phonenumber, Email) VALUES (:surname, :name, :lastname, :phone, :email);"
                 )
                 user_params = {
-                    "surname": None,
+                    "surname": order_item.customer_surname,
                     "name": order_item.customer_name,
-                    "lastname": None,
+                    "lastname": order_item.customer_lastname,
                     "phone": order_item.customer_phone,
                     "email": order_item.customer_email,
                 }
@@ -174,12 +173,13 @@ class workwithbd:
                 user_id = user_result.lastrowid
 
                 order_stmt = text(
-                    "INSERT INTO orders (UserID, Status, Description) VALUES (:user_id, :status, :description);"
+                    "INSERT INTO orders (UserID, Status, Description, Address) VALUES (:user_id, :status, :description, :address);"
                 )
                 order_params = {
                     "user_id": user_id,
                     "status": order_item.status,
                     "description": order_item.description,
+                    "address": order_item.order_address,
                 }
                 order_result = await session.execute(order_stmt, order_params)
                 await session.commit()
@@ -192,7 +192,7 @@ class workwithbd:
                     order_item_params = {
                         "order_id": order_id,
                         "good_id": good.id,
-                        "quantity": good.quantity, 
+                        "quantity": good.quantity,
                     }
                     await session.execute(order_item_stmt, order_item_params)
                     await session.commit()
@@ -231,7 +231,6 @@ class workwithbd:
         except SQLAlchemyError as e:
             print(f"Ошибка при выполнении операции INSERT: {e}")
 
-
     async def put_orders(self, order_id, status):
         try:
             async with self.async_session() as session:
@@ -240,7 +239,7 @@ class workwithbd:
                 )
                 params = {
                     "status": status,
-                    "order_id": order_id,    
+                    "order_id": order_id,
                 }
                 result = await session.execute(stmt, params)
                 await session.commit()
