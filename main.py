@@ -64,6 +64,29 @@ class order_item(BaseModel):
         from_attributes = True
 
 
+class product_for_order(BaseModel):
+    id: Optional[int] = None
+    quantity: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class add_order_item(BaseModel):
+    customer_surname: Optional[str] = None
+    customer_name: Optional[str] = None
+    customer_lastname: Optional[str] = None
+    customer_phone: Optional[str] = None
+    customer_email: Optional[str] = None
+    order_address: Optional[str] = None
+    status: Optional[str] = None
+    description: Optional[str] = None
+    goods: list[product_for_order]
+
+    class Config:
+        from_attributes = True
+
+
 class orders(BaseModel):
     count: int
     results: list[order_item]
@@ -159,6 +182,12 @@ async def read_item():
         )
 
     return {"count": len(results), "results": order_items}
+
+
+@app.post("/orders/")
+async def create_order(order_item: add_order_item):
+    result = await conn.post_order(order_item)
+    return result
 
 
 @app.get("/categories/", response_model=categories)
