@@ -174,7 +174,7 @@ class workwithbd:
                     }
                     await session.execute(order_item_stmt, order_item_params)
                     await session.commit()
-                return user_id
+                return order_id
         except SQLAlchemyError as e:
             print(f"Ошибка при выполнении операции INSERT: {e}")
 
