@@ -207,6 +207,40 @@ async def read_item():
     return {"count": len(results), "results": category_items}
 
 
+@app.get("/orders/{user_id}/", response_model=orders)
+async def update_order(user_id: int):
+    results = await conn.get_orders_by_user(user_id)
+    order_items = []
+    if len(results) == 0:
+        return {
+            "count": 0,
+            "results": [
+                {
+                    "id": None,
+                    "customer_name": None,
+                    "customer_phone": None,
+                    "customer_email": None,
+                    "status": None,
+                    "description": None,
+                    "goods": [],
+                }
+            ],
+        }
+    for i in results:
+        order_items.append(
+            order_item(
+                id=i[0],
+                customer_name=i[1],
+                customer_phone=i[2],
+                customer_email=i[3],
+                status=i[4],
+                description=i[5],
+                goods=i[6],
+            )
+        )
+    return {"count": len(results), "results": order_items}
+
+
 # @app.post("/products/", response_model=product_item)
 # async def create_good(product: product_item):
 #     result = await conn.post_goods(product)
@@ -274,3 +308,7 @@ async def upload_file(file: UploadFile, item_id: int):
     contents = await file.read()
     await conn.put_image(contents, item_id)
     return {"filename": file.filename}
+
+
+# if __name__ == "__main__":
+# uvicorn.run(app, host="127.0.0.1", port=9010)

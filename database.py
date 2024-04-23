@@ -39,49 +39,55 @@ class workwithbd:
             await session.commit()
             return rows
 
+    async def get_orders_by_user(self, user_id):
+        async with self.async_session() as session:
+            stmt = text(
+                "SELECT o.OrderID,u.Name AS customer_name, u.Phonenumber AS customer_phone, u.Email AS customer_email, o.Status, o.Description AS order_description, (SELECT GROUP_CONCAT(g.GoodID, '-', g.NameGood, '-', g.CategoryID, '-', g.Price) FROM orderitem ot JOIN good g ON g.GoodID = ot.GoodID WHERE ot.OrderID = o.OrderID) as order_details FROM orders o JOIN user u ON o.UserID = u.UserID where u.UserID = :user_id;"
+            )
+            order_params = {
+                "user_id": user_id,
+            }
+            result = await session.execute(stmt, order_params)
+            orders = result.all()
+            await session.commit()
+            orders_with_items = []
+
+            for order in orders:
+                # Преобразуем строку order[6] (order_description) в список, разделяя по '-'
+                order_description_parts = order[6].split(",")
+
+                # Создаем новый список, содержащий информацию о заказе и список товаров
+                order_with_items = list(order)  # Создаем копию списка order
+                order_with_items[6] = list(
+                    map(
+                        lambda x: x.split("-"),
+                        order_description_parts,
+                    )
+                )
+
+                dumplist = list()
+
+                for good in order_with_items[6]:
+                    dumplist.append(
+                        {
+                            "id": int(good[0]),
+                            "title": good[1],
+                            "category": int(good[2]),
+                            "price": float(good[3]),
+                        }
+                    )
+
+                order_with_items[6] = dumplist
+
+                # Заменяем order_description на список товаров
+                orders_with_items.append(order_with_items)
+
+            print(orders_with_items)
+
+            return orders_with_items
+
     async def get_orders(self):
         async with self.async_session() as session:
-            # Запрос информации о заказах
-            # order_stmt = text(
-            #     "SELECT "
-            #     "   o.OrderID, "
-            #     "   u.Name AS customer_name, "
-            #     "   u.Phonenumber AS customer_phone, "
-            #     "   u.Email AS customer_email, "
-            #     "   o.Status, "
-            #     "   o.Description AS order_description "
-            #     "FROM "
-            #     "   orders o "
-            #     "JOIN "
-            #     "   user u ON o.UserID = u.UserID;"
-            # )
-            # order_result = await session.execute(order_stmt)
-            # orders = order_result.all()
-            # orders_with_items = []
-            # async for order in order_result:
-            #     order_dict = dict(order)
-            #     order_id = order_dict['OrderID']
-            #     item_stmt = text(
-            #         "SELECT "
-            #         "   g.NameGood AS title, "
-            #         "   g.CategoryID AS category, "
-            #         "   g.Price "
-            #         "FROM "
-            #         "   orderitem oi "
-            #         "JOIN "
-            #         "   good g ON oi.GoodID = g.GoodID "
-            #         "WHERE "
-            #         "   oi.OrderID = :order_id;"
-            #     )
-            #     item_result = await session.execute(item_stmt, {"order_id": order_id})
-            #     items = []
-            #     async for item in item_result:
-            #         items.append(dict(item))
-            #     order_dict['items'] = items
-            #     orders_with_items.append(order_dict)
-
-            # await session.commit()
-
             order_stmt = text(
                 "SELECT o.OrderID,u.Name AS customer_name, u.Phonenumber AS customer_phone, u.Email AS customer_email, o.Status, o.Description AS order_description, (SELECT GROUP_CONCAT(g.GoodID, '-', g.NameGood, '-', g.CategoryID, '-', g.Price) FROM orderitem ot JOIN good g ON g.GoodID = ot.GoodID WHERE ot.OrderID = o.OrderID) as order_details FROM orders o JOIN user u ON o.UserID = u.UserID;"
             )
