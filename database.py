@@ -135,21 +135,30 @@ class workwithbd:
     async def post_order(self, order_item):
         try:
             async with self.async_session() as session:
-                user_stmt = text(
-                    "INSERT INTO user (UserID, Surname, Name, Lastname, Phonenumber, Email) VALUES (:user_id, :surname, :name, :lastname, :phone, :email);"
-                )
+
+                user_stmt = text("Select UserID from user where UserID = :user_id;")
                 user_params = {
                     "user_id": order_item.customer_id,
-                    "surname": order_item.customer_surname,
-                    "name": order_item.customer_name,
-                    "lastname": order_item.customer_lastname,
-                    "phone": order_item.customer_phone,
-                    "email": order_item.customer_email,
                 }
                 user_result = await session.execute(user_stmt, user_params)
                 await session.commit()
-
+                user_result = user_result.all()
                 user_id = order_item.customer_id
+
+                if len(user_result) == 0:
+                    user_stmt = text(
+                        "INSERT INTO user (UserID, Surname, Name, Lastname, Phonenumber, Email) VALUES (:user_id, :surname, :name, :lastname, :phone, :email);"
+                    )
+                    user_params = {
+                        "user_id": order_item.customer_id,
+                        "surname": order_item.customer_surname,
+                        "name": order_item.customer_name,
+                        "lastname": order_item.customer_lastname,
+                        "phone": order_item.customer_phone,
+                        "email": order_item.customer_email,
+                    }
+                    user_result = await session.execute(user_stmt, user_params)
+                    await session.commit()
 
                 order_stmt = text(
                     "INSERT INTO orders (UserID, Status, Description, Address) VALUES (:user_id, :status, :description, :address);"
