@@ -73,6 +73,7 @@ class product_for_order(BaseModel):
 
 
 class add_order_item(BaseModel):
+    customer_id: Optional[int] = None
     customer_surname: Optional[str] = None
     customer_name: Optional[str] = None
     customer_lastname: Optional[str] = None

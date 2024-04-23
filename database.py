@@ -136,9 +136,10 @@ class workwithbd:
         try:
             async with self.async_session() as session:
                 user_stmt = text(
-                    "INSERT INTO user (Surname, Name, Lastname, Phonenumber, Email) VALUES (:surname, :name, :lastname, :phone, :email);"
+                    "INSERT INTO user (UserID, Surname, Name, Lastname, Phonenumber, Email) VALUES (:user_id, :surname, :name, :lastname, :phone, :email);"
                 )
                 user_params = {
+                    "user_id": order_item.customer_id,
                     "surname": order_item.customer_surname,
                     "name": order_item.customer_name,
                     "lastname": order_item.customer_lastname,
@@ -148,7 +149,7 @@ class workwithbd:
                 user_result = await session.execute(user_stmt, user_params)
                 await session.commit()
 
-                user_id = user_result.lastrowid
+                user_id = order_item.customer_id
 
                 order_stmt = text(
                     "INSERT INTO orders (UserID, Status, Description, Address) VALUES (:user_id, :status, :description, :address);"
