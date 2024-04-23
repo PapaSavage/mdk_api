@@ -159,6 +159,20 @@ class workwithbd:
                     }
                     user_result = await session.execute(user_stmt, user_params)
                     await session.commit()
+                else:
+                    user_stmt = text(
+                        "UPDATE user SET Surname = :surname, Name = :name, Lastname = :lastname, Phonenumber = :phone, Email = :email WHERE UserID = :user_id;"
+                    )
+                    user_params = {
+                        "user_id": order_item.customer_id,
+                        "surname": order_item.customer_surname,
+                        "name": order_item.customer_name,
+                        "lastname": order_item.customer_lastname,
+                        "phone": order_item.customer_phone,
+                        "email": order_item.customer_email,
+                    }
+                    user_result = await session.execute(user_stmt, user_params)
+                    await session.commit()
 
                 order_stmt = text(
                     "INSERT INTO orders (UserID, Status, Description, Address) VALUES (:user_id, :status, :description, :address);"
