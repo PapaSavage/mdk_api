@@ -52,7 +52,9 @@ class add_product_item(BaseModel):
 
 class order_item(BaseModel):
     id: Optional[int] = None
+    customer_surname: Optional[str] = None
     customer_name: Optional[str] = None
+    customer_lastname: Optional[str] = None
     customer_phone: Optional[str] = None
     customer_email: Optional[str] = None
     status: Optional[str] = None
@@ -135,7 +137,9 @@ async def read_item():
             "results": [
                 {
                     "id": None,
+                    "customer_surname": None,
                     "customer_name": None,
+                    "customer_lastname": None,
                     "customer_phone": None,
                     "customer_email": None,
                     "status": None,
@@ -148,12 +152,14 @@ async def read_item():
         order_items.append(
             order_item(
                 id=i[0],
-                customer_name=i[1],
-                customer_phone=i[2],
-                customer_email=i[3],
-                status=i[4],
-                description=i[5],
-                goods=i[6],
+                customer_surname = i[1],
+                customer_name = i[2],
+                customer_lastname = i[3],
+                customer_phone=i[4],
+                customer_email=i[5],
+                status=i[6],
+                description=i[7],
+                goods=i[8],
             )
         )
 

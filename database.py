@@ -111,7 +111,7 @@ class workwithbd:
 
                 dumplist = list()
 
-                for good in order_with_items[6]:
+                for good in order_with_items[8]:
                     dumplist.append(
                         {
                             "id": int(good[0]),
