@@ -89,7 +89,7 @@ class workwithbd:
     async def get_orders(self):
         async with self.async_session() as session:
             order_stmt = text(
-                "SELECT o.OrderID,u.Name AS customer_name, u.Phonenumber AS customer_phone, u.Email AS customer_email, o.Status, o.Description AS order_description, (SELECT GROUP_CONCAT(g.GoodID, '-', g.NameGood, '-', g.CategoryID, '-', g.Price) FROM orderitem ot JOIN good g ON g.GoodID = ot.GoodID WHERE ot.OrderID = o.OrderID) as order_details FROM orders o JOIN user u ON o.UserID = u.UserID;"
+                "SELECT o.OrderID,u.Name AS customer_name, u.Phonenumber AS customer_phone, u.Email AS customer_email, o.Status, o.Description AS order_description, (SELECT GROUP_CONCAT(g.GoodID, '-', g.NameGood, '-', g.CategoryID, '-', g.Price, '-', ot.Quantity) FROM orderitem ot JOIN good g ON g.GoodID = ot.GoodID WHERE ot.OrderID = o.OrderID) as order_details FROM orders o JOIN user u ON o.UserID = u.UserID;"
             )
             order_result = await session.execute(order_stmt)
             orders = order_result.all()
@@ -118,6 +118,7 @@ class workwithbd:
                             "title": good[1],
                             "category": int(good[2]),
                             "price": float(good[3]),
+                            "quantity": int(good[4]),
                         }
                     )
 
