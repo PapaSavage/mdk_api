@@ -89,7 +89,7 @@ class workwithbd:
     async def get_orders(self):
         async with self.async_session() as session:
             order_stmt = text(
-                "SELECT o.OrderID,u.Name AS customer_name, u.Phonenumber AS customer_phone, u.Email AS customer_email, o.Status, o.Description AS order_description, (SELECT GROUP_CONCAT(g.GoodID, '-', g.NameGood, '-', g.CategoryID, '-', g.Price, '-', ot.Quantity) FROM orderitem ot JOIN good g ON g.GoodID = ot.GoodID WHERE ot.OrderID = o.OrderID) as order_details FROM orders o JOIN user u ON o.UserID = u.UserID;"
+                "SELECT o.OrderID ,u.Surname AS customer_surname ,u.Name AS customer_name, u.Lastname AS customer_lastname, u.Phonenumber AS customer_phone, u.Email AS customer_email, o.Status, o.Description AS order_description, (SELECT GROUP_CONCAT(g.GoodID, '-', g.NameGood, '-', g.CategoryID, '-', g.Price, '-', ot.Quantity) FROM orderitem ot JOIN good g ON g.GoodID = ot.GoodID WHERE ot.OrderID = o.OrderID) as order_details FROM orders o JOIN user u ON o.UserID = u.UserID;"
             )
             order_result = await session.execute(order_stmt)
             orders = order_result.all()
@@ -98,11 +98,11 @@ class workwithbd:
 
             for order in orders:
                 # Преобразуем строку order[6] (order_description) в список, разделяя по '-'
-                order_description_parts = order[6].split(",")
+                order_description_parts = order[8].split(",")
 
                 # Создаем новый список, содержащий информацию о заказе и список товаров
                 order_with_items = list(order)  # Создаем копию списка order
-                order_with_items[6] = list(
+                order_with_items[8] = list(
                     map(
                         lambda x: x.split("-"),
                         order_description_parts,
@@ -122,7 +122,7 @@ class workwithbd:
                         }
                     )
 
-                order_with_items[6] = dumplist
+                order_with_items[8] = dumplist
 
                 # Заменяем order_description на список товаров
                 orders_with_items.append(order_with_items)
