@@ -47,6 +47,7 @@ class add_product_item(BaseModel):
     title: Optional[str] = None
     category: Optional[int] = None
     price: Optional[float] = None
+    quantity: Optional[int] = None
 
     class Config:
         from_attributes = True
