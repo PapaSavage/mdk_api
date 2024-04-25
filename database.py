@@ -151,21 +151,37 @@ class workwithbd:
                 await session.commit()
                 user_result = user_result.all()
                 user_id = order_item.customer_id
+                inserted_id = None
 
                 if len(user_result) == 0:
-                    user_stmt = text(
-                        "INSERT INTO user (UserID, Surname, Name, Lastname, Phonenumber, Email) VALUES (:user_id, :surname, :name, :lastname, :phone, :email);"
-                    )
-                    user_params = {
-                        "user_id": order_item.customer_id,
-                        "surname": order_item.customer_surname,
-                        "name": order_item.customer_name,
-                        "lastname": order_item.customer_lastname,
-                        "phone": order_item.customer_phone,
-                        "email": order_item.customer_email,
-                    }
-                    user_result = await session.execute(user_stmt, user_params)
-                    await session.commit()
+                    if order_item.customer_id != None:
+                        user_stmt = text(
+                            "INSERT INTO user (UserID, Surname, Name, Lastname, Phonenumber, Email) VALUES (:user_id, :surname, :name, :lastname, :phone, :email);"
+                        )
+                        user_params = {
+                            "user_id": order_item.customer_id,
+                            "surname": order_item.customer_surname,
+                            "name": order_item.customer_name,
+                            "lastname": order_item.customer_lastname,
+                            "phone": order_item.customer_phone,
+                            "email": order_item.customer_email,
+                        }
+                        user_result = await session.execute(user_stmt, user_params)
+                        await session.commit()
+                    else:
+                        user_stmt = text(
+                            "INSERT INTO user (Surname, Name, Lastname, Phonenumber, Email) VALUES (:surname, :name, :lastname, :phone, :email);"
+                        )
+                        user_params = {
+                            "surname": order_item.customer_surname,
+                            "name": order_item.customer_name,
+                            "lastname": order_item.customer_lastname,
+                            "phone": order_item.customer_phone,
+                            "email": order_item.customer_email,
+                        }
+                        user_result = await session.execute(user_stmt, user_params)
+                        await session.commit()
+                        inserted_id = user_result.lastrowid
                 else:
                     user_stmt = text(
                         "UPDATE user SET Surname = :surname, Name = :name, Lastname = :lastname, Phonenumber = :phone, Email = :email WHERE UserID = :user_id;"
@@ -184,12 +200,21 @@ class workwithbd:
                 order_stmt = text(
                     "INSERT INTO orders (UserID, Status, Description, Address) VALUES (:user_id, :status, :description, :address);"
                 )
-                order_params = {
-                    "user_id": user_id,
-                    "status": order_item.status,
-                    "description": order_item.description,
-                    "address": order_item.order_address,
-                }
+                print(inserted_id)
+                if inserted_id != None:
+                    order_params = {
+                        "user_id": inserted_id,
+                        "status": order_item.status,
+                        "description": order_item.description,
+                        "address": order_item.order_address,
+                    }
+                else:
+                    order_params = {
+                        "user_id": user_id,
+                        "status": order_item.status,
+                        "description": order_item.description,
+                        "address": order_item.order_address,
+                    }
                 order_result = await session.execute(order_stmt, order_params)
                 await session.commit()
                 order_id = order_result.lastrowid
