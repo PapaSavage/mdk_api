@@ -17,6 +17,7 @@ origins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "https://mdk-botstore.vercel.app",
+    "https://mdk-site.vercel.app",
 ]
 
 app.add_middleware(
