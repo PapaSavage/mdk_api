@@ -5,9 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 import asyncio
 
-DATABASE_URL = (
-    "mysql+aiomysql://p684612_mdk_bd:w68h46U2KR@p684612.mysql.ihc.ru/p684612_mdk_bd"
-)
+DATABASE_URL = "mysql+aiomysql://p684612_mdk_bd_d:MidNightHero123@p684612.mysql.ihc.ru/p684612_mdk_bd_d"
 
 
 class workwithbd:
